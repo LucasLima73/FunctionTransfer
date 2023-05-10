@@ -1,169 +1,81 @@
+<!DOCTYPE html>
 <html>
   <head>
     <title>Projeto</title>
     <meta charset="utf-8">
-    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
-    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   </head>
   <body>
+    <label for="tau-input">Constante de Tempo (τ):</label>
+    <input type="number" id="tau-input" name="tau" value="0.27" step="0.1" min="0">
 
-    <py-config>
-      packages = ["matplotlib", "numpy"]
-    </py-config>
-      
-    <py-script>
-      import matplotlib.pyplot as plt
-      import base64
-      import numpy as np
-      from io import BytesIO
-      
-      # Define a função de transferência de primeira ordem
-      def first_order_transfer_function(t, tau, K):
-          return K * (1 - np.exp(-t/tau))
-      
-      # Define a função de transferência de segunda ordem
-      def second_order_transfer_function(t, omega_n, zeta):
-          return np.exp(-zeta*omega_n*t) * (1 - zeta**2)**0.5 * np.sin(omega_n*t*(1-zeta**2)**0.5 + np.arcsin(zeta))
-      
-      # Obtém os valores dos campos de entrada
-      tau1 = float(js.document.getElementById("tau-input").value)
-      K1 = float(js.document.getElementById("k-input").value)
-      omega_n2 = float(js.document.getElementById("omega-input").value)
-      zeta2 = float(js.document.getElementById("zeta-input").value)
-      
-      # Gera os valores a serem plotados
-      t = np.linspace(0, 10, 1000)  # Eixo do tempo
-      y1 = first_order_transfer_function(t, tau1, K1)  # Eixo da saída da primeira ordem
-      y2 = second_order_transfer_function(t, omega_n2, zeta2)  # Eixo da saída da segunda ordem
-      
-      # Plota o gráfico da função de transferência de primeira ordem
-      fig1, ax1 = plt.subplots()
-      ax1.plot(t, y1)
-      ax1.set_xlabel('Tempo (s)')
-      ax1.set_ylabel('Saída')
-      ax1.set_title('Resposta da Função de Transferência de Primeira Ordem')
-      ax1.grid(True)
-      
-      # Plota o gráfico da função de transferência de segunda ordem
-      fig2, ax2 = plt.subplots()
-      ax2.plot(t, y2)
-      ax2.set_xlabel('Tempo (s)')
-      ax2.set_ylabel('Saída')
-      ax2.set_title('Resposta da Função de Transferência de Segunda Ordem')
-      ax2.grid(True)
-      
-      # Define o tamanho da imagem
-      fig1.set_size_inches(w=4, h=3)
-      fig2.set_size_inches(w=4, h=3)
-      
-      # Salva as imagens em um buffer
-      buf1 = BytesIO()
-      fig1.savefig(buf1, format='png')
-      buf1.seek(0)
-      raw_data1 = buf1.getvalue()
-      
-      buf2 = BytesIO()
-      fig2.savefig(buf2, format='png')
-      buf2.seek(0)
-      raw_data2 = buf2.getvalue()
-      
-      # Codifica as imagens em base64
-      img_src1 = 'data:image/png;base64,{}'.format(base64.b64encode(raw_data1).decode())
-      img_src2 = 'data:image/png;base64,{}'.format(base64.b64encode(raw_data2).decode())
-      
-      # Cria as tags HTML para as imagens
-      img_tag1 = '<img src="{}">'.format(img_src1)
-      img_tag2 = '<img src="{}">'.format(img_src2)
-      
-      # Cria o código HTML completo com as imagens
-      html = """
-      <div>
-        {}
-      </div>
-      <div>
-       {}
-      </div>
-      """.format(img_tag1, img_tag2)
-      
-      element = js.document.getElementById("graph-area")
-      element.innerHTML = html
-      </py-script>
-      
-      <label for="tau-input">Constante de Tempo (τ):</label>
-      <input type="number" id="tau-input" name="tau" value="5.0" step="0.1" min="0">
+    <label for="k-input">Ganho (K):</label>
+    <input type="number" id="k-input" name="k" value="0.466" step="0.1" min="0">
 
-      <label for="k-input">Ganho (K):</label>
-      <input type="number" id="k-input" name="k" value="5.0" step="0.1" min="0">
+    <label for="omega-input">Frequência Natural (ω<sub>n</sub>):</label>
+    <input type="number" id="omega-input" name="omega" value="2.12" step="0.1" min="0">
 
-      <label for="omega-input">Frequência Natural (ω<sub>n</sub>):</label>
-      <input type="number" id="omega-input" name="omega" value="5.0" step="0.1" min="0">
-
-      <label for="zeta-input">Fator de Amortecimento (ζ):</label>
-      <input type="number" id="zeta-input" name="zeta" value="3.5" step="0.1" min="0">
-
-
+    <label for="zeta-input">Fator de Amortecimento (ζ):</label>
+    <input type="number" id="zeta-input" name="zeta" value="1.77" step="0.1" min="0">
 
     <div id="graph-area"></div>
+
     <script>
-      // Adicionar evento de escuta ao campo de entrada 'tau-input'
-      document.getElementById("tau-input").addEventListener("input", updateGraph);
-    
-      // Adicionar evento de escuta ao campo de entrada 'k-input'
-      document.getElementById("k-input").addEventListener("input", updateGraph);
-    
-      // Adicionar evento de escuta ao campo de entrada 'omega-input'
-      document.getElementById("omega-input").addEventListener("input", updateGraph);
-    
-      // Adicionar evento de escuta ao campo de entrada 'zeta-input'
-      document.getElementById("zeta-input").addEventListener("input", updateGraph);
-    
-      // Função para atualizar o gráfico com base nos novos valores dos campos de entrada
       function updateGraph() {
-        // Obter os valores dos campos de entrada
         var tau = parseFloat(document.getElementById("tau-input").value);
-        var k = parseFloat(document.getElementById("k-input").value);
-        var omega = parseFloat(document.getElementById("omega-input").value);
+        var K = parseFloat(document.getElementById("k-input").value);
+        var omega_n = parseFloat(document.getElementById("omega-input").value);
         var zeta = parseFloat(document.getElementById("zeta-input").value);
 
-        // Importar o módulo Matplotlib
-        const plt = require('matplotlib');
+        var t = Array.from({ length: 1000 }, (_, i) => i / 100);
+        var y1 = t.map((value) => K * (1 - Math.exp(-value / tau)));
+        var y2 = t.map((value) =>
+          Math.exp(-zeta * omega_n * value) *
+          Math.sqrt(1 - zeta ** 2) *
+          Math.sin(omega_n * value * Math.sqrt(1 - zeta ** 2) + Math.asin(zeta))
+        );
 
-        // Definir a função de transferência de primeira ordem
-        function first_order_transfer_function(t, tau, K) {
-        return K * (1 - Math.exp(-t / tau));
-       }
+        var trace1 = {
+          x: t,
+          y: y1,
+          mode: 'lines',
+          name: 'First Order Transfer Function',
+          type: 'scatter'
+        };
 
-        // Gerar os valores a serem plotados
-        var t = plt.linspace(0, 10, 1000);  // Eixo do tempo
-        var y = first_order_transfer_function(t, tau, k);  // Eixo da saída
+        var trace2 = {
+          x: t,
+          y: y2,
+          mode: 'lines',
+          name: 'Second Order Transfer Function',
+          type: 'scatter'
+        };
 
-        // Limpar a área do gráfico
-        var graphArea = document.getElementById("graph-area");
-        graphArea.innerHTML = "";
+        var layout = {
+          xaxis: {
+            title: 'Tempo (s)'
+          },
+          yaxis: {
+            title: 'Saída'
+          },
+          title: 'Resposta das Funções de Transferência',
+          grid: {
+            gridcolor: '#ccc',
+            gridwidth: 1
+          }
+        };
 
-        // Criar um elemento <canvas> para o gráfico
-        var canvas = document.createElement("canvas");
-        graphArea.appendChild(canvas);
+        var data = [trace1, trace2];
 
-        // Configurar o tamanho do gráfico
-        canvas.width = 400;
-        canvas.height = 300;
+        Plotly.newPlot('graph-area', data, layout);
+      }
 
-        // Plotar o gráfico usando Matplotlib
-        plt.plot(t, y);
-        plt.xlabel('Tempo (s)');
-        plt.ylabel('Saída');
-        plt.title('Resposta da Função de Transferência de Primeira Ordem');
-        plt.grid(true);
-        plt.show();
+      document.getElementById("tau-input").addEventListener("input", updateGraph);
+      document.getElementById("k-input").addEventListener("input", updateGraph);
+      document.getElementById("omega-input").addEventListener("input", updateGraph);
+      document.getElementById("zeta-input").addEventListener("input", updateGraph);
 
-        // Converter o gráfico para imagem e adicionar ao elemento <canvas>
-        var imgData = canvas.toDataURL();
-        var imgTag = '<img src="' + imgData + '">';
-        graphArea.innerHTML = imgTag;
-        console.log("Valores atualizados:", tau, k, omega, zeta);
-        }
-        </script>
-    
+      updateGraph(); // Plot the graph initially
+    </script>
   </body>
 </html>
