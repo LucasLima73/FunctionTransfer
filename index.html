@@ -1,0 +1,109 @@
+<html>
+  <head>
+    <title>Ice Cream Picker</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
+    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+  </head>
+  <body>
+
+    <py-config>
+      packages = ["matplotlib", "numpy"]
+    </py-config>
+      
+    <py-script>
+      import matplotlib.pyplot as plt
+      import base64
+      import numpy as np
+      from io import BytesIO
+      
+      # Define a função de transferência de primeira ordem
+      def first_order_transfer_function(t, tau, K):
+          return K * (1 - np.exp(-t/tau))
+      
+      # Define a função de transferência de segunda ordem
+      def second_order_transfer_function(t, omega_n, zeta):
+          return np.exp(-zeta*omega_n*t) * (1 - zeta**2)**0.5 * np.sin(omega_n*t*(1-zeta**2)**0.5 + np.arcsin(zeta))
+      
+      # Obtém os valores dos campos de entrada
+      tau1 = float(js.document.getElementById("tau-input").value)
+      K1 = float(js.document.getElementById("k-input").value)
+      omega_n2 = float(js.document.getElementById("omega-input").value)
+      zeta2 = float(js.document.getElementById("zeta-input").value)
+      
+      # Gera os valores a serem plotados
+      t = np.linspace(0, 10, 1000)  # Eixo do tempo
+      y1 = first_order_transfer_function(t, tau1, K1)  # Eixo da saída da primeira ordem
+      y2 = second_order_transfer_function(t, omega_n2, zeta2)  # Eixo da saída da segunda ordem
+      
+      # Plota o gráfico da função de transferência de primeira ordem
+      fig1, ax1 = plt.subplots()
+      ax1.plot(t, y1)
+      ax1.set_xlabel('Tempo (s)')
+      ax1.set_ylabel('Saída')
+      ax1.set_title('Resposta da Função de Transferência de Primeira Ordem')
+      ax1.grid(True)
+      
+      # Plota o gráfico da função de transferência de segunda ordem
+      fig2, ax2 = plt.subplots()
+      ax2.plot(t, y2)
+      ax2.set_xlabel('Tempo (s)')
+      ax2.set_ylabel('Saída')
+      ax2.set_title('Resposta da Função de Transferência de Segunda Ordem')
+      ax2.grid(True)
+      
+      # Define o tamanho da imagem
+      fig1.set_size_inches(w=4, h=3)
+      fig2.set_size_inches(w=4, h=3)
+      
+      # Salva as imagens em um buffer
+      buf1 = BytesIO()
+      fig1.savefig(buf1, format='png')
+      buf1.seek(0)
+      raw_data1 = buf1.getvalue()
+      
+      buf2 = BytesIO()
+      fig2.savefig(buf2, format='png')
+      buf2.seek(0)
+      raw_data2 = buf2.getvalue()
+      
+      # Codifica as imagens em base64
+      img_src1 = 'data:image/png;base64,{}'.format(base64.b64encode(raw_data1).decode())
+      img_src2 = 'data:image/png;base64,{}'.format(base64.b64encode(raw_data2).decode())
+      
+      # Cria as tags HTML para as imagens
+      img_tag1 = '<img src="{}">'.format(img_src1)
+      img_tag2 = '<img src="{}">'.format(img_src2)
+      
+      # Cria o código HTML completo com as imagens
+      html = """
+      <div>
+        {}
+      </div>
+      <div>
+       {}
+      </div>
+      """.format(img_tag1, img_tag2)
+      
+      element = js.document.getElementById("graph-area")
+      element.innerHTML = html
+      </py-script>
+      
+      <label for="tau-input">Constante de Tempo (τ):</label>
+      <input type="number" id="tau-input" name="tau" value="1.0" step="0.1" min="0">
+
+      <label for="k-input">Ganho (K):</label>
+      <input type="number" id="k-input" name="k" value="1.0" step="0.1" min="0">
+
+      <label for="omega-input">Frequência Natural (ω<sub>n</sub>):</label>
+      <input type="number" id="omega-input" name="omega" value="2.0" step="0.1" min="0">
+
+      <label for="zeta-input">Fator de Amortecimento (ζ):</label>
+      <input type="number" id="zeta-input" name="zeta" value="0.5" step="0.1" min="0">
+
+
+
+    <div id="graph-area"></div>
+
+  </body>
+</html>
