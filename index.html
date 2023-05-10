@@ -19,7 +19,9 @@
     <input type="number" id="zeta-input" name="zeta" value="1.77" step="0.1" min="0">
 
     <div id="graph-area"></div>
+    <div id="saved-graph"></div>
 
+    <button onclick="saveGraph()">Salvar Gráfico</button>
     <script>
       function updateGraph() {
         var tau = parseFloat(document.getElementById("tau-input").value);
@@ -68,6 +70,13 @@
         var data = [trace1, trace2];
 
         Plotly.newPlot('graph-area', data, layout);
+      }
+      function saveGraph() {
+        var graphArea = document.getElementById('graph-area');
+        var graphData = graphArea.data;
+        var graphLayout = graphArea.layout;
+
+        Plotly.newPlot('saved-graph', graphData, graphLayout);
       }
 
       document.getElementById("tau-input").addEventListener("input", updateGraph);
